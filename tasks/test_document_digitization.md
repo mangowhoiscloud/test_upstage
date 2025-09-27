@@ -46,7 +46,6 @@ curl -L -o sample/documents/irs-form-w9.pdf "https://www.irs.gov/pub/irs-pdf/fw9
 - 전체 응답은 `/tmp/ocr_response.json`에 저장했고, 필요 시 `jq -r '.content.markdown' /tmp/ocr_response.json | head` 명령으로 일부만 확인했습니다.
 
 ### 4.1 `content.markdown` 전체 본문
-```markdown
 # Form W-9 (Rev. October 2018)
 ## Request for Taxpayer Identification Number and Certification
 ### Department of the Treasury  Internal Revenue Service
@@ -107,7 +106,6 @@ See page 3 of the official form for detailed line-by-line directions including:
 
 ## Sign Here
 Signature of U.S. person ➤ ___________________________    Date ➤ ____________
-```
 
 ## 5. 한계 및 메모
 - 테스트에는 실 API 키를 사용했으며, 실행 후 즉시 환경 변수에서 제거했습니다. 자동화 환경에서는 GitHub Actions Secrets나 `.env` 파일을 통한 주입을 권장합니다.
