@@ -42,6 +42,7 @@ export UPSTAGE_API_KEY="sk-..."
 ```bash
 # 1) Chat/Reasoning
 python examples/langchain_upstage_quickstart.py chat "태양 전지의 효율을 높이는 방법을 설명해 줘"
+# (기본 모델은 solar-pro2이며, `--model` 옵션으로 다른 모델을 시도할 수 있습니다.)
 
 # 2) Document Digitization (PDF, 이미지 등 업로드)
 # 먼저 공개 배포본을 내려받아 `sample/documents/` 폴더에 저장하세요.

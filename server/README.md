@@ -37,7 +37,7 @@ python upstage_proxy.py
 curl -X POST http://localhost:8080/chat \
      -H 'Content-Type: application/json' \
      -d '{
-           "model": "solar-1-mini-chat",
+          "model": "solar-pro2",
            "messages": [
              {"role": "system", "content": "You are a helpful assistant."},
              {"role": "user", "content": "안녕하세요?"}
@@ -47,6 +47,8 @@ curl -X POST http://localhost:8080/chat \
 
 ## 테스트 스크립트
 `test_api.py`는 서버가 실행 중일 때 간단한 요청을 보내는 스크립트입니다. 또한 `--mode direct` 옵션을 주면 로컬 프록시를 거치지 않고 Upstage API로 직접 요청을 전송할 수 있습니다.
+
+- `--endpoint chat` 요청은 기본적으로 `solar-pro2` 모델을 사용하며, 필요하면 `--model`, `--temperature`, `--reasoning-effort` 옵션으로 세부 값을 조정할 수 있습니다. (`reasoning-effort` 기본값은 `high`)
 
 - `--endpoint ocr` 와 `--mode direct`를 함께 사용하면 샘플 문서를 `multipart/form-data`로 업로드합니다. 기본 파일 경로는 `sample/documents/irs-form-w9.pdf`이며, 실행 전 아래 명령으로 IRS Form W-9 공개 배포본을 다운로드해 두어야 합니다. 필요하면 `--file` 옵션으로 다른 경로를 지정할 수 있습니다.
 

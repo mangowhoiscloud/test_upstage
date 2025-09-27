@@ -21,7 +21,7 @@ from langchain_upstage import (
 )
 
 
-def run_chat(question: str, model: str = "solar-mini", temperature: float | None = None) -> str:
+def run_chat(question: str, model: str = "solar-pro2", temperature: float | None = None) -> str:
     """Send a single-turn chat completion request."""
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
 
     chat_parser = subparsers.add_parser("chat", help="Run a single chat completion")
     chat_parser.add_argument("question", help="User question to send to the model")
-    chat_parser.add_argument("--model", default="solar-mini", help="Upstage chat model alias")
+    chat_parser.add_argument("--model", default="solar-pro2", help="Upstage chat model alias")
     chat_parser.add_argument("--temperature", type=float, default=None, help="Sampling temperature")
 
     parse_parser = subparsers.add_parser("parse", help="Parse a document via Upstage Document Parse")

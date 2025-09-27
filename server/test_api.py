@@ -19,6 +19,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--endpoint", choices=["chat", "ocr", "extraction"], default="chat")
     parser.add_argument("--message", default="Ping", help="Message to send for chat testing")
     parser.add_argument(
+        "--model",
+        default="solar-pro2",
+        help="Chat model alias (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="Optional temperature for chat completions.",
+    )
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=["low", "medium", "high"],
+        default="high",
+        help="Reasoning effort level for chat completions (default: %(default)s).",
+    )
+    parser.add_argument(
         "--payload",
         help="Optional raw JSON payload. Overrides --message for chat endpoint.",
     )
@@ -55,13 +72,18 @@ def build_payload(args: argparse.Namespace) -> Dict[str, Any]:
         return json.loads(args.payload)
 
     if args.endpoint == "chat":
-        return {
-            "model": "solar-1-mini-chat",
+        payload = {
+            "model": args.model,
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": args.message},
             ],
         }
+        if args.temperature is not None:
+            payload["temperature"] = args.temperature
+        if args.reasoning_effort:
+            payload["reasoning_effort"] = args.reasoning_effort
+        return payload
 
     if args.endpoint == "ocr":
         payload: Dict[str, Any] = {"model": "document-parse"}
