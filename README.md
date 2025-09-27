@@ -1,48 +1,31 @@
-# Upstage API Proxy 테스트 가이드
+# Upstage 제품 사용 테스트
 
-## 준비 사항
-- `.env.example`을 복사해 `.env`에 `UPSTAGE_API_KEY`를 채웁니다.
-- GitHub Actions에서는 동일한 이름의 시크릿을 등록하면 워크플로(`.github/workflows/tests.yml`)가 자동으로 주입합니다.
+이 저장소는 Upstage의 Chat/Reasoning, Document Digitization, Information Extraction 제품을 실제 API를 통해 체험한 과정을 기록합니다.
 
-## 검증에 사용한 명령과 결과
+## 실행 준비
 
-### 1. Python 문법 검증
-```bash
-python -m py_compile server/*.py
-```
-```text
-성공 (오류 없음)
-```
+1. Upstage 콘솔에서 API 키를 발급받고 로컬 환경 변수에 설정합니다.
 
-### 2. Chat Completions 직접 호출
-```bash
-python server/test_api.py --mode direct --endpoint chat --message "테스트 케이스"
-```
-```json
-{
-  "id": "d436ef2d-4aeb-426d-94c5-cd77c9434c43",
-  "object": "chat.completion",
-  "created": 1758995606,
-  "model": "solar-mini-250422",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "테스트 케이스는 소프트웨어 개발에서 프로그램의 기능을 검증하고 오류나 버그를 찾기 위해 사용되는 입력 데이터, 실행 조건, 기대 결과의 집합입니다. ..."
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 23,
-    "completion_tokens": 293,
-    "total_tokens": 316
-  }
-}
-```
-- 제공된 메시지에 대해 200 응답과 자연어 답변을 확인했습니다.
+   ```bash
+   export UPSTAGE_API_KEY="<your-upstage-api-key>"
+   ```
 
-## 추가 자료
-- 상세 테스트 기록: `tasks/test_generative.md`
-- CI/CD 구성 메모: `tasks/build_CICD.md`
+   > Git 저장소에는 API 키를 절대 커밋하지 마세요. 로컬 테스트 후에는 `unset UPSTAGE_API_KEY` 또는 `.env`/GitHub Actions Secrets를 활용한 안전한 주입 방식으로 되돌리세요.
+
+2. 스트리밍 데모와 직접 호출 예제는 `openai` 파이썬 패키지에 의존하므로 필요한 경우 아래 명령으로 설치합니다.
+
+   ```bash
+   pip install openai
+   ```
+
+## 빠른 체험 가이드
+
+- **Chat/Reasoning** – `examples/upstage_stream_demo.py`를 실행하면 `solar-pro2` 모델의 스트리밍 응답을 확인할 수 있습니다. CLI 헬퍼(`server/test_api.py --endpoint chat`) 역시 기본값으로 `solar-pro2` 모델과 `--reasoning-effort high` 구성을 사용하므로 스니펫과 동일한 환경을 재현할 수 있습니다.
+- **Document Digitization** – `server/test_api.py --mode direct --endpoint ocr --file sample/documents/irs-form-w9.pdf` 명령으로 실제 문서 파싱 결과를 받을 수 있습니다. 실행 전 아래와 같이 공개 배포본을 직접 내려받아 `sample/documents/` 폴더에 저장하세요.
+
+  ```bash
+  curl -L -o sample/documents/irs-form-w9.pdf "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
+  ```
+- **Information Extraction** – 프록시 서버(`server/upstage_proxy.py`)를 가동한 뒤 `server/test_api.py`를 이용해 구조화된 추출 응답을 검증할 수 있습니다.
+
+상세한 테스트 절차와 평가 내용은 `tasks` 및 `EVALUATION.md`를 참고하세요.

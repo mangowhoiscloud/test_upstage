@@ -15,27 +15,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Dict, Optional
 from urllib import request, error
 
-try:
-    from .env_utils import load_env_file
-except ImportError:  # pragma: no cover - fallback when executed as a script
-    from env_utils import load_env_file
 
-
-UPSTAGE_CHAT_URL = "https://api.upstage.ai/v1/chat/completions"
+UPSTAGE_CHAT_URL = "https://api.upstage.ai/v1/agents/chats"
 UPSTAGE_OCR_URL = "https://api.upstage.ai/v1/document-digitization"
 UPSTAGE_EXTRACTION_URL = "https://api.upstage.ai/v1/information-extraction"
-UPSTAGE_EMBEDDINGS_URL = "https://api.upstage.ai/v1/embeddings"
-
-
-load_env_file()
-
-
-class UpstreamDecodeError(RuntimeError):
-    """Raised when the upstream service returns a non-JSON payload."""
-
-    def __init__(self, body: str) -> None:
-        super().__init__("Upstream response was not valid JSON")
-        self.body = body
 
 
 class UpstageProxyHandler(BaseHTTPRequestHandler):
@@ -53,11 +36,7 @@ class UpstageProxyHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "UPSTAGE_API_KEY is not set"}, HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
-        try:
-            content_length = int(self.headers.get("Content-Length", "0"))
-        except ValueError:
-            self._send_json({"error": "Invalid Content-Length header"}, HTTPStatus.BAD_REQUEST)
-            return
+        content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length) if content_length else b"{}"
         payload: Dict[str, Any]
         try:
@@ -72,8 +51,6 @@ class UpstageProxyHandler(BaseHTTPRequestHandler):
             upstream_url = UPSTAGE_OCR_URL
         elif self.path == "/extraction":
             upstream_url = UPSTAGE_EXTRACTION_URL
-        elif self.path == "/embeddings":
-            upstream_url = UPSTAGE_EMBEDDINGS_URL
         else:
             self._send_json({"error": f"Unsupported path: {self.path}"}, HTTPStatus.NOT_FOUND)
             return
@@ -87,15 +64,6 @@ class UpstageProxyHandler(BaseHTTPRequestHandler):
             return
         except error.URLError as exc:  # pragma: no cover - network failure
             self._send_json({"error": str(exc.reason)}, HTTPStatus.BAD_GATEWAY)
-            return
-        except UpstreamDecodeError as exc:
-            self._send_json(
-                {
-                    "error": "Upstream response was not valid JSON",
-                    "raw": exc.body,
-                },
-                HTTPStatus.BAD_GATEWAY,
-            )
             return
 
         self._send_json(response, HTTPStatus.OK)
@@ -120,14 +88,7 @@ class UpstageProxyHandler(BaseHTTPRequestHandler):
         data = json.dumps(payload).encode("utf-8")
         with request.urlopen(req, data=data, timeout=30) as response:  # noqa: S310 - upstream HTTPS call
             response_bytes = response.read()
-        if not response_bytes:
-            return {}
-
-        decoded = response_bytes.decode("utf-8", errors="replace")
-        try:
-            return json.loads(decoded)
-        except json.JSONDecodeError as exc:
-            raise UpstreamDecodeError(decoded) from exc
+        return json.loads(response_bytes.decode("utf-8")) if response_bytes else {}
 
     def _send_json(self, payload: Dict[str, Any], status: HTTPStatus) -> None:
         body = json.dumps(payload).encode("utf-8")
