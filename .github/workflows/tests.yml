@@ -1,0 +1,39 @@
+name: Upstage Proxy Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      UPSTAGE_API_KEY: ${{ secrets.UPSTAGE_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Validate API key secret is present
+        run: |
+          if [ -z "${UPSTAGE_API_KEY}" ]; then
+            echo "UPSTAGE_API_KEY secret is not configured." >&2
+            exit 1
+          fi
+
+      - name: Run static checks
+        run: |
+          python -m py_compile server/*.py
+
+      - name: Run chat smoke test
+        run: |
+          python server/test_api.py --mode direct --endpoint chat --message "안녕하세요"
