@@ -8,16 +8,32 @@ import sys
 from typing import Any, Dict
 from urllib import request, error
 
+try:
+    from .env_utils import load_env_file
+except ImportError:  # pragma: no cover - fallback when executed as a script
+    from env_utils import load_env_file
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Send a test request to the Upstage proxy")
     parser.add_argument("--host", default="127.0.0.1", help="Proxy host (default: %(default)s)")
     parser.add_argument("--port", type=int, default=8080, help="Proxy port (default: %(default)d)")
-    parser.add_argument("--endpoint", choices=["chat", "ocr", "extraction"], default="chat")
+    parser.add_argument(
+        "--endpoint",
+        choices=["chat", "ocr", "extraction", "embeddings"],
+        default="chat",
+    )
     parser.add_argument("--message", default="Ping", help="Message to send for chat testing")
     parser.add_argument(
         "--payload",
         help="Optional raw JSON payload. Overrides --message for chat endpoint.",
+    )
+    parser.add_argument(
+        "--model",
+        help=(
+            "Override the model name. Required for embeddings, document digitization, "
+            "and information extraction direct calls."
+        ),
     )
     parser.add_argument(
         "--mode",
@@ -32,13 +48,20 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+class PayloadError(ValueError):
+    """Raised when the CLI receives an invalid payload definition."""
+
+
 def build_payload(args: argparse.Namespace) -> Dict[str, Any]:
     if args.payload:
-        return json.loads(args.payload)
+        try:
+            return json.loads(args.payload)
+        except json.JSONDecodeError as exc:
+            raise PayloadError(f"Invalid JSON supplied via --payload: {exc}") from exc
 
     if args.endpoint == "chat":
         return {
-            "model": "solar-1-mini-chat",
+            "model": args.model or "solar-1-mini-chat",
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": args.message},
@@ -46,29 +69,49 @@ def build_payload(args: argparse.Namespace) -> Dict[str, Any]:
         }
 
     if args.endpoint == "ocr":
+        if not args.model:
+            raise PayloadError("--model is required when calling the ocr endpoint.")
         return {
+            "model": args.model,
             "task": "document_digitization",
             "file_url": "https://example.com/sample.pdf",
         }
 
+    if args.endpoint == "embeddings":
+        if not args.model:
+            raise PayloadError("--model is required when calling the embeddings endpoint.")
+        return {
+            "model": args.model,
+            "input": [args.message],
+        }
+
+    if not args.model:
+        raise PayloadError("--model is required when calling the extraction endpoint.")
     return {
+        "model": args.model,
         "task": "information_extraction",
         "document_text": "Invoice #1234, Total: $56.00",
     }
 
 
 def main() -> int:
+    load_env_file()
     args = parse_args()
-    payload = build_payload(args)
+    try:
+        payload = build_payload(args)
+    except PayloadError as exc:
+        print(str(exc))
+        return 3
 
     if args.mode == "proxy":
         url = f"http://{args.host}:{args.port}/{args.endpoint}"
         req = request.Request(url, method="POST")
     else:
         upstream_urls = {
-            "chat": "https://api.upstage.ai/v1/agents/chats",
+            "chat": "https://api.upstage.ai/v1/chat/completions",
             "ocr": "https://api.upstage.ai/v1/document-digitization",
             "extraction": "https://api.upstage.ai/v1/information-extraction",
+            "embeddings": "https://api.upstage.ai/v1/embeddings",
         }
         url = upstream_urls[args.endpoint]
         req = request.Request(url, method="POST")
