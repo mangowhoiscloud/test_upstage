@@ -46,7 +46,7 @@ curl -X POST http://localhost:8080/chat \
 ```
 
 ## 테스트 스크립트
-`test_api.py`는 서버가 실행 중일 때 간단한 요청을 보내는 스크립트입니다. 또한 `--mode direct` 옵션을 주면 로컬 프록시를 거치지 않고 Upstage API로 직접 요청을 전송할 수 있습니다.
+`test_api.py`는 서버가 실행 중일 때 간단한 요청을 보내는 스크립트입니다. 또한 `--mode direct` 옵션을 주면 로컬 프록시를 거치지 않고 Upstage API로 직접 요청을 전송할 수 있습니다. 이때 채팅 엔드포인트는 OpenAI 호환 경로인 `https://api.upstage.ai/v1/chat/completions`로 전송됩니다.
 
 - `--endpoint chat` 요청은 기본적으로 `solar-pro2` 모델을 사용하며, 필요하면 `--model`, `--temperature`, `--reasoning-effort` 옵션으로 세부 값을 조정할 수 있습니다. (`reasoning-effort` 기본값은 `high`)
 

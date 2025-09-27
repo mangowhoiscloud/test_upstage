@@ -146,7 +146,7 @@ def main() -> int:
         req = request.Request(url, method="POST")
     else:
         upstream_urls = {
-            "chat": "https://api.upstage.ai/v1/agents/chats",
+            "chat": "https://api.upstage.ai/v1/chat/completions",
             "ocr": "https://api.upstage.ai/v1/document-digitization",
             "extraction": "https://api.upstage.ai/v1/information-extraction",
         }

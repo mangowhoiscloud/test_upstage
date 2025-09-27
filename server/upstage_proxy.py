@@ -16,7 +16,7 @@ from typing import Any, Dict, Optional
 from urllib import request, error
 
 
-UPSTAGE_CHAT_URL = "https://api.upstage.ai/v1/agents/chats"
+UPSTAGE_CHAT_URL = "https://api.upstage.ai/v1/chat/completions"
 UPSTAGE_OCR_URL = "https://api.upstage.ai/v1/document-digitization"
 UPSTAGE_EXTRACTION_URL = "https://api.upstage.ai/v1/information-extraction"
 

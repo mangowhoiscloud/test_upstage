@@ -43,7 +43,7 @@ curl -L -o sample/documents/irs-form-w9.pdf "https://www.irs.gov/pub/irs-pdf/fw9
   - `usage.pages`: 6
   - `content.markdown` 필드에 W-9 주요 본문과 표가 Markdown 형태로 정리되어 반환됨 (예: 헤더, 안내문, 표 형태 필드 설명).
   - layout 요소에는 각 페이지의 세부 블록이 배열 형태로 포함되어 있어 좌표 기반 후처리에도 활용 가능합니다.
-- 응답은 `/tmp/ocr_response.json` 및 `./content_markdown.md`에 저장함
+  - 생성 원문은 `/tmp/ocr_response.json` 및 `./content_markdown.md`에 저장함
 
 ## 5. 한계 및 메모
 - 테스트에는 실 API 키를 사용했으며, 실행 후 즉시 환경 변수에서 제거했습니다. 자동화 환경에서는 GitHub Actions Secrets나 `.env` 파일을 통한 주입을 권장합니다.
