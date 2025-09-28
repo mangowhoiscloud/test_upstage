@@ -1,0 +1,8 @@
+{
+  "fields": [
+    {"name": "vendor", "type": "string", "description": "공급업체 이름"},
+    {"name": "invoice_number", "type": "string", "description": "송장 번호"},
+    {"name": "total_amount", "type": "string", "description": "총 금액"},
+    {"name": "delivery_date", "type": "string", "description": "납품 또는 납기일"}
+  ]
+}
