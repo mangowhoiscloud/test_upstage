@@ -26,6 +26,52 @@
   ```bash
   curl -L -o sample/documents/irs-form-w9.pdf "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
   ```
-- **Information Extraction** – 프록시 서버(`server/upstage_proxy.py`)를 가동한 뒤 `server/test_api.py`를 이용해 구조화된 추출 응답을 검증할 수 있습니다.
+- **Information Extraction** – 범용 추출 모델(`information-extract`)을 사용하면 W-9와 같은 문서에서 원하는 필드를 JSON으로 받을 수 있습니다.
+  1. 의존성을 설치합니다. `pip install langchain-upstage`
+  2. `export UPSTAGE_API_KEY="<your-upstage-api-key>"`
+  3. 아래 스니펫으로 스키마를 생성하거나 수정한 뒤 추출을 실행합니다.
 
+     ```bash
+     python - <<'PY'
+     from langchain_upstage.universal_information_extraction import UpstageUniversalInformationExtraction
+     import json
+
+     extractor = UpstageUniversalInformationExtraction()
+     schema = {
+         "type": "json_schema",
+         "json_schema": {
+             "name": "w9_form",
+             "schema": {
+                 "type": "object",
+                 "properties": {
+                     "name": {"type": "string", "description": "Name shown on line 1."},
+                     "businessName": {"type": "string", "description": "Business/disregarded entity name on line 2."},
+                     "taxClassification": {"type": "string", "description": "Selected federal tax classification."},
+                     "address": {"type": "string", "description": "Address including city, state, ZIP."},
+                     "tin": {"type": "string", "description": "Taxpayer identification number (SSN or EIN)."},
+                     "certification": {"type": "string", "description": "Certification text summary."}
+                 }
+             }
+         }
+     }
+
+     response = extractor.extract(["sample/documents/irs-form-w9.pdf"], response_format=schema)
+     print(json.dumps(json.loads(response["choices"][0]["message"]["content"]), ensure_ascii=False, indent=2))
+     PY
+     ```
+
+     빈 W-9 양식으로 테스트했을 때 결과는 다음과 같습니다. 비어 있는 필드는 공란으로 유지되고, 인증 문단만 전체 텍스트가 추출됩니다.
+
+     ```json
+     {
+       "name": "",
+       "businessName": "",
+       "taxClassification": "",
+       "address": "",
+       "tin": "",
+       "certification": "Under penalties of perjury, I certify that:\n1. The number shown on this form is my correct taxpayer identification number (or I am waiting for a number to be issued to me); and\n2. I am not subject to backup withholding because (a) I am exempt from backup withholding, or (b) I have not been notified by the Internal Revenue Service (IRS) that I am subject to backup withholding as a result of a failure to report all interest or dividends, or (c) the IRS has notified me that I am no longer subject to backup withholding; and\n3. I am a U.S. citizen or other U.S. person (defined below); and\n4. The FATCA code(s) entered on this form (if any) indicating that I am exempt from FATCA reporting is correct."
+     }
+     ```
+
+     자세한 실행 로그는 `tasks/test_information_extraction.md`에서 확인할 수 있습니다.
 상세한 테스트 절차와 평가 내용은 `tasks` 및 `EVALUATION.md`를 참고하세요.
