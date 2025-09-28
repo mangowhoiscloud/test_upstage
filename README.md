@@ -74,5 +74,4 @@
      ```
 
      자세한 실행 로그는 `tasks/test_information_extraction.md`에서 확인할 수 있습니다.
-
 상세한 테스트 절차와 평가 내용은 `tasks` 및 `EVALUATION.md`를 참고하세요.
